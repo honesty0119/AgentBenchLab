@@ -1,0 +1,10 @@
+{
+  "name": "真实模型 · 开发集",
+  "agent": "openai-compatible",
+  "split": "dev",
+  "repeats": 3,
+  "concurrency": 2,
+  "max_steps": 12,
+  "context_chars": 24000,
+  "timeout_seconds": 120
+}

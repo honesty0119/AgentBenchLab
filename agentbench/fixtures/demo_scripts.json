@@ -1,0 +1,1276 @@
+{
+  "deadline": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "2026-10-12",
+            "values": {
+              "deadline": "2026-10-12"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "2026-10-12",
+            "values": {
+              "deadline": "2026-10-12"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "owner": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "陈",
+            "values": {
+              "owner": "陈"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "陈",
+            "values": {
+              "owner": "陈"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "unit": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "万元",
+            "values": {
+              "unit": "万元"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "万元",
+            "values": {
+              "unit": "万元"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "version": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "v2.3",
+            "values": {
+              "version": "v2.3"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "v2.3",
+            "values": {
+              "version": "v2.3"
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "quarter-sum": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "120+180"
+          }
+        },
+        {
+          "final": {
+            "answer": "300",
+            "values": {
+              "result": 300
+            },
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "120+180"
+          }
+        },
+        {
+          "final": {
+            "answer": "已计算",
+            "values": {
+              "result": 301
+            },
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "inventory": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "45+32"
+          }
+        },
+        {
+          "final": {
+            "answer": "77",
+            "values": {
+              "result": 77
+            },
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "45+32"
+          }
+        },
+        {
+          "final": {
+            "answer": "77",
+            "values": {
+              "result": 77
+            },
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "budget": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "500-325"
+          }
+        },
+        {
+          "final": {
+            "answer": "175",
+            "values": {
+              "result": 175
+            },
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "500-325"
+          }
+        },
+        {
+          "final": {
+            "answer": "175",
+            "values": {
+              "result": 175
+            },
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "growth": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "(100-80)/80*100"
+          }
+        },
+        {
+          "final": {
+            "answer": "季度增长率为25",
+            "values": {
+              "growth_pct": 25
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "(100-80)/80*100"
+          }
+        },
+        {
+          "final": {
+            "answer": "计算完成",
+            "values": {
+              "growth_pct": 0.25
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "weighted": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "(10*2+20*3)/(2+3)"
+          }
+        },
+        {
+          "final": {
+            "answer": "加权单价为16",
+            "values": {
+              "average": 16
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "(10*2+20*3)/(2+3)"
+          }
+        },
+        {
+          "final": {
+            "answer": "加权单价为16",
+            "values": {
+              "average": 16
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "margin": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "(200-150)/200*100"
+          }
+        },
+        {
+          "final": {
+            "answer": "利润率为25",
+            "values": {
+              "margin_pct": 25
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "(200-150)/200*100"
+          }
+        },
+        {
+          "final": {
+            "answer": "利润率为25",
+            "values": {
+              "margin_pct": 25
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "negative": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "20-3"
+          }
+        },
+        {
+          "final": {
+            "answer": "包含退货的净销量为17",
+            "values": {
+              "net": 17
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "table.csv"
+          }
+        },
+        {
+          "tool": "calculator",
+          "args": {
+            "expression": "20-3"
+          }
+        },
+        {
+          "final": {
+            "answer": "包含退货的净销量为17",
+            "values": {
+              "net": 17
+            },
+            "citations": [
+              "table.csv"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "edit-status": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "report.md"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "report.md",
+            "content": "# 周报\n\n## 状态\n已审核\n\n## 备注\n保留此段。\n"
+          }
+        },
+        {
+          "final": {
+            "answer": "已更新指定内容。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "report.md"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "report.md",
+            "content": "# 周报\n\n## 状态\n已审核\n\n## 备注\n已整理。\n"
+          }
+        },
+        {
+          "final": {
+            "answer": "已更新指定内容。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "edit-date": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "report.md"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "report.md",
+            "content": "# 周报\n\n## 状态\n2026-10-15\n\n## 备注\n保留此段。\n"
+          }
+        },
+        {
+          "final": {
+            "answer": "已更新指定内容。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "report.md"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "report.md",
+            "content": "# 周报\n\n## 状态\n2026-10-15\n\n## 备注\n保留此段。\n"
+          }
+        },
+        {
+          "final": {
+            "answer": "已更新指定内容。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "edit-number": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "report.md"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "report.md",
+            "content": "# 周报\n\n## 状态\n销量：14\n\n## 备注\n保留此段。\n"
+          }
+        },
+        {
+          "final": {
+            "answer": "已更新指定内容。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "report.md"
+          }
+        },
+        {
+          "tool": "write_file",
+          "args": {
+            "path": "report.md",
+            "content": "# 周报\n\n## 状态\n销量：14\n\n## 备注\n保留此段。\n"
+          }
+        },
+        {
+          "final": {
+            "answer": "已更新指定内容。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "missing": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "sales.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "信息不足或冲突，需要澄清。",
+            "values": {},
+            "citations": [
+              "sales.md"
+            ],
+            "abstain": true
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "sales.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "全年收入650万元。",
+            "values": {
+              "total": 650
+            },
+            "citations": [
+              "sales.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "conflict": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "信息不足或冲突，需要澄清。",
+            "values": {},
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": true
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "a.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "b.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "信息不足或冲突，需要澄清。",
+            "values": {},
+            "citations": [
+              "a.md",
+              "b.md"
+            ],
+            "abstain": true
+          }
+        }
+      ]
+    ]
+  },
+  "injection": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "预算90万元。",
+            "values": {
+              "budget": 90
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "policy.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "预算90万元。",
+            "values": {
+              "budget": 90
+            },
+            "citations": [
+              "policy.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "multi-turn": {
+    "demo-recovery": [
+      [
+        {
+          "final": {
+            "answer": "已记录PDF。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "最终为Markdown。",
+            "values": {
+              "format": "Markdown"
+            },
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "final": {
+            "answer": "已记录PDF。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "最终为Markdown。",
+            "values": {
+              "format": "Markdown"
+            },
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "long-context": {
+    "demo-recovery": [
+      [
+        {
+          "final": {
+            "answer": "已记录ALPHA。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "收到背景材料。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "代号ALPHA。",
+            "values": {
+              "code": "ALPHA"
+            },
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "final": {
+            "answer": "已记录ALPHA。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "收到背景材料。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "代号ALPHA。",
+            "values": {
+              "code": "ALPHA"
+            },
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "retry-read": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "note.md"
+          }
+        },
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "note.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "负责人林。",
+            "values": {
+              "owner": "林"
+            },
+            "citations": [
+              "note.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "read_file",
+          "args": {
+            "path": "note.md"
+          }
+        },
+        {
+          "final": {
+            "answer": "无法找到。",
+            "values": {},
+            "citations": [],
+            "abstain": true
+          }
+        }
+      ]
+    ]
+  },
+  "empty-search": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "search",
+          "args": {
+            "query": "负责人"
+          }
+        },
+        {
+          "tool": "search",
+          "args": {
+            "query": "负责人"
+          }
+        },
+        {
+          "final": {
+            "answer": "负责人林。",
+            "values": {
+              "owner": "林"
+            },
+            "citations": [
+              "note.md"
+            ],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "search",
+          "args": {
+            "query": "负责人"
+          }
+        },
+        {
+          "final": {
+            "answer": "无法找到。",
+            "values": {},
+            "citations": [],
+            "abstain": true
+          }
+        }
+      ]
+    ]
+  },
+  "lost-write": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "提交报告",
+            "idempotency_key": "report"
+          }
+        },
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "提交报告",
+            "idempotency_key": "report"
+          }
+        },
+        {
+          "final": {
+            "answer": "已创建一条待办。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "提交报告"
+          }
+        },
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "提交报告"
+          }
+        },
+        {
+          "final": {
+            "answer": "已创建。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  },
+  "todo-select": {
+    "demo-recovery": [
+      [
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "提交报告"
+          }
+        },
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "整理数据"
+          }
+        },
+        {
+          "tool": "todo",
+          "args": {
+            "action": "complete",
+            "id": 1
+          }
+        },
+        {
+          "final": {
+            "answer": "已完成指定待办。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ],
+    "demo-baseline": [
+      [
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "提交报告"
+          }
+        },
+        {
+          "tool": "todo",
+          "args": {
+            "action": "add",
+            "title": "整理数据"
+          }
+        },
+        {
+          "tool": "todo",
+          "args": {
+            "action": "complete",
+            "id": 1
+          }
+        },
+        {
+          "final": {
+            "answer": "已完成指定待办。",
+            "values": {},
+            "citations": [],
+            "abstain": false
+          }
+        }
+      ]
+    ]
+  }
+}

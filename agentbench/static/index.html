@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentBench Lab · 评测工作台</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%232f53de'/%3E%3Cpath d='M10 29L20 10L30 29M14 23H26' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="/static/styles.css"></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/"><span class="brand-icon">A<span>·</span></span><span>AgentBench <b>Lab</b><small>EVALUATION WORKSPACE</small></span></a>
+  <div class="space-label">工作空间 <span>LOCAL</span></div>
+  <nav aria-label="主导航">
+    <button data-page="overview" class="nav active"><span>◫</span>总览</button>
+    <button data-page="runs" class="nav"><span>≋</span>评测实验 <i id="run-count">0</i></button>
+    <button data-page="cases" class="nav"><span>▦</span>评测集</button>
+    <button data-page="calibration" class="nav"><span>◎</span>Judge 校准</button>
+    <button data-page="guide" class="nav"><span>⌘</span>方法与证据</button>
+  </nav>
+  <div class="side-note"><span class="dot"></span>本地优先 · 数据隔离<p>每一次评测，都有可追溯的依据。</p></div>
+  <footer><span class="avatar">AB</span><div>个人实验室<small>AgentBench Lab v0.1</small></div></footer>
+</aside>
+<main>
+  <header class="topbar"><div>工作空间 <span>/</span> <b id="crumb">总览</b></div><div class="connection" id="connection">连接中</div></header>
+  <div id="app" aria-live="polite"><div class="empty">正在载入工作台…</div></div>
+</main>
+<dialog id="modal"><div id="modal-content"></div></dialog>
+<div id="toast" role="status"></div>
+<script src="/static/app.js"></script>
+</body></html>

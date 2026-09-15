@@ -1,0 +1,8 @@
+{
+  "name": "真实模型 · 小上下文预算",
+  "agent": "openai-compatible",
+  "case_ids": ["long-context", "multi-turn"],
+  "repeats": 3,
+  "concurrency": 2,
+  "context_chars": 1800
+}
