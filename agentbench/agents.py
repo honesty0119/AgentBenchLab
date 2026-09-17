@@ -134,10 +134,12 @@ class ScriptedClient:
         return LLMDecision("final", json.dumps(action["final"], ensure_ascii=False))
 
 
-async def execute_case(case: Case, config: RunConfig) -> dict:
-    env = Environment({p: case.files[p] for p in case.file_order}, [] if config.intervention == "no_faults" else case.faults,
+async def execute_case(case: Case, config: RunConfig, *, environment=None, client=None,
+                       system: str = SYSTEM, before_turn=None) -> dict:
+    """Execute a fixture; optional dependencies support isolated domain adapters."""
+    env = environment if environment is not None else Environment({p: case.files[p] for p in case.file_order}, [] if config.intervention == "no_faults" else case.faults,
                       config.tool_retry_policy, config.tool_retries)
-    client = (ModelClient(config.model, config) if config.agent == "openai-compatible"
+    client = client if client is not None else (ModelClient(config.model, config) if config.agent == "openai-compatible"
               else ScriptedClient(case.id, config.agent))
     started = time.perf_counter()
     answer = ""
@@ -148,7 +150,7 @@ async def execute_case(case: Case, config: RunConfig) -> dict:
     with tempfile.TemporaryDirectory(prefix="agentbench-") as tmp:
         store = SessionStore(str(Path(tmp) / "session.db"))
         session = store.create_session(case.id)["id"]
-        context = EvaluationContext(store, SYSTEM, max_context_chars=config.context_chars, recent_messages=8,
+        context = EvaluationContext(store, system, max_context_chars=config.context_chars, recent_messages=8,
             timezone_name="UTC", policy="full" if config.intervention == "full_context" else config.context_policy)
         runtime = AgentRuntime(store, client, env.registry(), context,
             max_steps=config.max_steps, tool_timeout_seconds=config.tool_timeout_seconds)
@@ -156,6 +158,8 @@ async def execute_case(case: Case, config: RunConfig) -> dict:
             async with asyncio.timeout(config.timeout_seconds):
                 for index, turn in enumerate(case.turns):
                     env.turn = index
+                    if before_turn is not None:
+                        before_turn(index)
                     if config.intervention == "reference_evidence":
                         if not case.evidence_paths:
                             raise ValueError("Reference evidence intervention requires evidence_paths")
@@ -220,5 +224,5 @@ async def execute_case(case: Case, config: RunConfig) -> dict:
                        "retry_wait_ms": getattr(client, "wait_ms", 0)},
             "duration_ms": round((time.perf_counter() - started) * 1000, 2),
             "transport_attempts": attempts,
-            "demo": config.agent.startswith("demo-"), "prompt_hash": PROMPT_HASH,
+            "demo": config.agent.startswith("demo-"), "prompt_hash": digest(system),
             "intervention": config.intervention}

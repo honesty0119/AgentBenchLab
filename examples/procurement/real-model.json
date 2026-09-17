@@ -1,0 +1,18 @@
+{
+  "name": "采购场景单题有界模型实验（需另行授权预算）",
+  "agent": "openai-compatible",
+  "model": "",
+  "repeats": 1,
+  "concurrency": 1,
+  "max_steps": 12,
+  "timeout_seconds": 120,
+  "context_chars": 24000,
+  "request_chars": 50000,
+  "max_output_tokens": 2048,
+  "http_retries": 0,
+  "tool_retry_policy": "safe",
+  "tool_retries": 1,
+  "tool_timeout_seconds": 0.05,
+  "input_price_per_million": null,
+  "output_price_per_million": null
+}
