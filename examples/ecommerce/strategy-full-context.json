@@ -1,0 +1,23 @@
+{
+  "max_model_calls": 120,
+  "config": {
+    "name": "电商单变量对照：先配置模型和请求预算",
+    "agent": "openai-compatible",
+    "model": "REPLACE_WITH_YOUR_MODEL",
+    "case_ids": [
+      "ec-lost-create",
+      "ec-switch-item",
+      "ec-rounding"
+    ],
+    "repeats": 3,
+    "max_steps": 16,
+    "timeout_seconds": 120,
+    "context_chars": 24000,
+    "request_chars": 100000,
+    "max_output_tokens": 1500,
+    "http_retries": 0,
+    "tool_retry_policy": "none",
+    "tool_timeout_seconds": 0.1,
+    "context_policy": "full"
+  }
+}

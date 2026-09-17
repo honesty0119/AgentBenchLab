@@ -1,5 +1,8 @@
 # 电商售后评测沙箱（方案与验收）
 
+本文件保留首版调研与业务设计；当前实验保存、比较、Judge与重评分流程见
+[第二轮实验指南](ecommerce-v2.md)。故障未触发不再单独判业务失败；恢复资格与业务分数分开。
+
 ## 定位和业务假设
 
 业务 Agent 是被测对象；本模块是本地评测环境，不执行真实退款，不连接商家系统。
@@ -90,15 +93,15 @@ false_status、clarification、execution、fault_not_triggered、semantic。
 ```powershell
 uv sync --locked
 uv run python -m agentbench.domains.ecommerce demo
-uv run python -m agentbench.domains.ecommerce demo --variant baseline --output data/ecommerce/baseline.json
-uv run python -m agentbench.domains.ecommerce serve --port 8766
+uv run python -m agentbench.domains.ecommerce demo --variant baseline
+uv run python -m agentbench.domains.ecommerce serve --run RUN_ID --port 8766
 uv run python -m inspect_ai eval agentbench/domains/ecommerce/inspect_task.py@ecommerce --model mockllm/model --limit 3 --log-dir data/ecommerce/inspect_logs
 uv run pytest tests/ecommerce -q
 ```
 
 打开 http://127.0.0.1:8766 。默认选择响应丢失完整案例；可选30题、看逐轮业务状态、展开每个工具事件。
 只读页面不发送模型请求，也不开放创建/退款 HTTP 接口。`demo`、`serve`、当前 Inspect 入口均离线。
-报告保存到 `data/ecommerce/report.json`，包含任务快照、数据哈希、源码/依赖/脚本指纹、实际上下文、
+命令返回独立 RUN_ID；报告只写一次到 `data/ecommerce/runs/RUN_ID/run.json`，包含任务快照、数据哈希、源码/依赖/脚本指纹、实际上下文、
 工具前后状态、故障触发、逐轮答案及分层结论。SQLite 会话使用每次试验独立临时库，JSON 报告长期保存。
 现有文档工作台的数据导入、评分、对比与 UI 未扩展为跨领域通用平台，不能把领域任务导入旧 Case Schema。
 

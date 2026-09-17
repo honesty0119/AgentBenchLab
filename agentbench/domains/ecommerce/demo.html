@@ -3,12 +3,23 @@
 <style>
 body{margin:0;background:#f5f6f8;color:#182536;font:16px/1.65 system-ui,sans-serif}main{max-width:1150px;margin:40px auto;padding:0 24px}
 h1{font-size:32px;margin:4px 0}h2{font-size:21px}small,.muted{color:#596c7b}section{padding:22px;background:white;border:1px solid #dbe2e9;border-radius:12px;margin:18px 0}
-select{padding:10px;max-width:100%;border:1px solid #9aa9b7;border-radius:6px}pre{white-space:pre-wrap;word-break:break-word;background:#f2f5f8;padding:14px;border-radius:6px;font:13px/1.65 ui-monospace,monospace}
+select,input,button{padding:10px;max-width:100%;border:1px solid #9aa9b7;border-radius:6px;margin:4px}button{cursor:pointer;background:#106555;color:white}pre{white-space:pre-wrap;word-break:break-word;background:#f2f5f8;padding:14px;border-radius:6px;font:13px/1.65 ui-monospace,monospace}
 .warning{border-left:4px solid #ad730f;background:#fff8e9;padding:12px 18px}.stats{display:flex;gap:15px;flex-wrap:wrap}.stats b{font-size:24px;color:#106555}.pill{padding:4px 9px;background:#e7f3ee;border-radius:5px}
 details{border-top:1px solid #e3e9ed;padding:12px 0}summary{cursor:pointer}table{width:100%;border-collapse:collapse}td,th{text-align:left;border-bottom:1px solid #e3e9ed;padding:8px}
 </style><main><small>AGENTBENCH LAB / ECOMMERCE</small><h1>部分退货，结果必须可核对</h1>
 <p class="muted">政策 → 订单明细 → 优惠分摊 → 退货申请 → 故障恢复证据</p>
-<p class="warning">本地合成沙箱 · 全部数据 draft · 确定性脚本知道答案。以下不是模型能力成绩；没有真实退款，整体结论仍待语义评分。</p>
+<p class="warning" id="mode">只读实验查看器：不会运行Agent、调用Judge或覆盖原始报告。全部任务仍为合成draft。</p>
+<section><h2>已保存的实验与评分历史</h2><label for="runs">运行</label><select id="runs"></select><br>
+<label for="cohorts">Judge配置组</label><select id="cohorts"></select>
+<label for="regrades">规则版本</label><select id="regrades"></select><p id="error" role="alert"></p></section>
+<section><h2>配对比较</h2><label for="base">基线</label><select id="base"></select>
+<label for="candidate">候选</label><select id="candidate"></select><br>
+<label for="metric">指标</label><select id="metric"><option value="rules">硬规则</option><option value="overall">整体</option></select>
+<label for="compare-cohort">共同Judge组</label><input id="compare-cohort" placeholder="整体比较必须填入配置组指纹"><br>
+<label for="base-regrade">基线重评分批次</label><input id="base-regrade" placeholder="默认原评分">
+<label for="candidate-regrade">候选重评分批次</label><input id="candidate-regrade" placeholder="默认原评分"><br>
+<label><input id="diagnostic" type="checkbox">诊断比较（不可用作门禁）</label><button id="compare">比较保存结果</button>
+<pre id="comparison">同任务/重复、同评分与执行契约才可比较；缺失语义或未执行任务会明确拒绝。</pre></section>
 <section><div class="stats" id="stats"></div><p><label for="cases">选择任务：</label><select id="cases"></select></p><div id="description"></div></section>
 <section><h2>逐轮结果与业务终态</h2><div id="turns"></div></section>
 <section><h2>工具与故障证据</h2><div id="events"></div></section>
@@ -16,19 +27,35 @@ details{border-top:1px solid #e3e9ed;padding:12px 0}summary{cursor:pointer}table
 <script>
 const node=(tag,text)=>{const n=document.createElement(tag);n.textContent=text;return n;};
 const pretty=x=>JSON.stringify(x,null,2);
-fetch('/api/report').then(r=>r.json()).then(report=>{
- document.getElementById('stats').textContent=`样本 ${report.summary.total}　硬规则通过 ${report.summary.rules_pass}　整体通过 ${report.summary.overall_pass}`;
- document.getElementById('identity').textContent=pretty({dataset_hash:report.dataset_hash,code_fingerprint:report.code_fingerprint,variant:report.variant});
- const selector=document.getElementById('cases');
- report.trials.forEach((t,i)=>{const option=node('option',`${t.case.title} · ${t.grade.rules}`);option.value=i;selector.append(option);});
- function show(){
+const el=id=>document.getElementById(id);
+const option=(s,value,text)=>{const o=node('option',text);o.value=value;s.append(o);};
+async function get(url){const r=await fetch(url);const data=await r.json();if(!r.ok)throw Error(data.detail||'请求失败');return data;}
+let report, loadSequence=0, compareSequence=0;
+function show(){
+  const selector=el('cases');
   const t=report.trials[selector.value];const description=document.getElementById('description');description.replaceChildren();
   description.append(node('p',`${t.case.id} / ${t.case.family} / ${t.case.split} / draft`),node('p',t.case.reference),node('pre',pretty(t.grade)));
+  if(t.judgement){const detail=node('details','');detail.append(node('summary','所选Judge记录与来源证据'),node('pre',pretty(t.judgement)));description.append(detail);}
   const turns=document.getElementById('turns');turns.replaceChildren();
-  t.result.turn_snapshots.forEach((s,i)=>{turns.append(node('h3',`第 ${i+1} 轮`),node('p',t.case.turns[i]),node('pre',s.answer),node('pre',pretty(s.state.returns)));});
+  if(t.result.termination==='not_executed')turns.append(node('p','未执行：'+t.result.reason));
+  (t.result.turn_snapshots||[]).forEach((s,i)=>{turns.append(node('h3',`第 ${i+1} 轮`),node('p',t.case.turns[i]),node('pre',s.answer),node('pre',pretty(s.state.returns)));});
   const events=document.getElementById('events');events.replaceChildren();
-  t.result.tools.forEach((e,i)=>{const d=node('details','');d.append(node('summary',`${i+1}. ${e.name} · ${e.result.ok?'成功':'失败'}${e.fault?' · 注入 '+e.fault:''}`),node('pre',pretty({arguments:e.arguments,result:e.result,fault:e.fault,cancelled:e.cancelled,harness_retry:e.harness_retry,returns_before:e.state_before.returns,returns_after:e.state_after.returns})));events.append(d);});
- }
- selector.value=Math.max(0,report.trials.findIndex(t=>t.case.id==='ec-lost-create'));selector.addEventListener('change',show);show();
-}).catch(e=>document.getElementById('stats').textContent='报告加载失败：'+e.message);
+  (t.result.tools||[]).forEach((e,i)=>{const d=node('details','');d.append(node('summary',`${i+1}. ${e.name} · ${e.result.ok?'成功':'失败'}${e.fault?' · 注入 '+e.fault:''}`),node('pre',pretty({arguments:e.arguments,result:e.result,fault:e.fault,cancelled:e.cancelled,harness_retry:e.harness_retry,returns_before:e.state_before.returns,returns_after:e.state_after.returns})));events.append(d);});
+}
+function render(data){
+ report=data;el('error').textContent='';
+ el('mode').textContent=(report.demo?'演示脚本：知道答案，不代表模型能力。':'模型运行：仅代表这些合成草稿上的结果。')+' '+(report.note||'')+' 只读查看，不产生模型费用、不覆盖原报告。'+(report.legacy?'旧版报告仅供查看，不能严格比较。':'');
+ el('stats').textContent=`计划 ${report.summary.total} · 已执行 ${report.summary.executed??'旧版未统计'} · 硬规则通过 ${report.summary.rules_pass} · 整体通过 ${report.summary.overall_pass} · 恢复 ${report.summary.recovery_successes??'未知'}/${report.summary.recovery_denominator??'未知'}（完整触发分母）`;
+ el('identity').textContent=pretty({run_id:report.run_id,demo:report.demo,dataset_hash:report.dataset_hash,code_fingerprint:report.code_fingerprint,scorer_hash:report.scorer_hash,selected_cohort:report.selected_cohort,selected_regrade:report.selected_regrade,config:report.config,summary:report.summary});
+ el('cohorts').replaceChildren();option(el('cohorts'),'','自动（多组不混用）');(report.available_cohorts||[]).forEach(c=>option(el('cohorts'),c,c));el('cohorts').value=report.selected_cohort||'';
+ el('regrades').replaceChildren();option(el('regrades'),'','运行时原始评分');(report.available_regrades||[]).forEach(b=>option(el('regrades'),b.id,b.created_at+' / '+b.id));el('regrades').value=report.selected_regrade||'';
+ el('cases').replaceChildren();report.trials.forEach((t,i)=>option(el('cases'),i,`${t.case.title} #${t.repeat??0} · ${t.grade.rules}`));
+ el('cases').value=Math.max(0,report.trials.findIndex(t=>t.case.id==='ec-lost-create'));show();
+}
+async function loadRun(history=false){const sequence=++loadSequence;const query=new URLSearchParams();if(history){if(el('cohorts').value)query.set('cohort',el('cohorts').value);if(el('regrades').value)query.set('regrade',el('regrades').value);}el('stats').textContent='正在读取所选运行…';for(const id of ['description','turns','events','identity'])el(id).replaceChildren();el('cases').disabled=true;try{const data=await get((el('runs').value?'/api/runs/'+el('runs').value:'/api/report')+'?'+query);if(sequence===loadSequence)render(data);}catch(e){if(sequence===loadSequence)el('error').textContent=e.message;}finally{if(sequence===loadSequence)el('cases').disabled=false;}}
+el('cases').addEventListener('change',show);el('runs').addEventListener('change',()=>loadRun());
+el('cohorts').addEventListener('change',()=>loadRun(true));el('regrades').addEventListener('change',()=>loadRun(true));
+for(const id of ['base','candidate','metric','compare-cohort','base-regrade','candidate-regrade','diagnostic'])el(id).addEventListener('change',()=>{++compareSequence;el('comparison').textContent='选择已更改，请重新比较。';});
+el('compare').addEventListener('click',async()=>{const sequence=++compareSequence;el('comparison').textContent='正在比较保存结果…';const q=new URLSearchParams({base:el('base').value,candidate:el('candidate').value,metric:el('metric').value,diagnostic:el('diagnostic').checked});for(const [id,key]of [['compare-cohort','cohort'],['base-regrade','base_regrade'],['candidate-regrade','candidate_regrade']])if(el(id).value.trim())q.set(key,el(id).value.trim());try{const result=await get('/api/compare?'+q);if(sequence===compareSequence)el('comparison').textContent=pretty(result);}catch(e){if(sequence===compareSequence)el('comparison').textContent=e.message;}});
+Promise.all([get('/api/report'),get('/api/runs')]).then(([current,runs])=>{for(const id of ['runs','base','candidate']){runs.forEach(r=>option(el(id),r.run_id,`${r.demo?'演示':'模型'} ${r.variant} ${r.run_id}`));}if(!runs.some(r=>r.run_id===current.run_id))option(el('runs'),'','当前报告文件');el('runs').value=runs.some(r=>r.run_id===current.run_id)?current.run_id:'';if(runs.length>1)el('base').value=runs[1].run_id;render(current);}).catch(e=>el('error').textContent='加载失败：'+e.message);
 </script></html>

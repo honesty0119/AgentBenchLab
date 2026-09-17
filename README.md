@@ -110,6 +110,18 @@ HTTP 模型与 Judge 接口通过模拟响应测试；另有可选 OpenJudge 库
 
 ## 设计资料与边界
 
+电商售后领域现有独立的实验入口：30条合成草稿任务、部分退货与优惠分摊、响应丢失幂等恢复、
+不可变运行记录、预算受限的模型/Judge执行、追加重评分和配对回归门禁。查看已有报告不会重跑Agent。
+
+```powershell
+uv run python -m agentbench.domains.ecommerce demo
+# 使用上一条命令返回的 RUN_ID；独立端口，不影响文档工作台
+uv run python -m agentbench.domains.ecommerce serve --run RUN_ID --port 8766
+```
+
+见[电商方案](docs/scenarios/ecommerce.md)、[实验比较与评分历史指南](docs/scenarios/ecommerce-v2.md)。
+离线脚本知道答案；未完成独立人审或真实模型效果实验，不能把演示通过率当作模型能力指标。
+
 - [v0.2 可靠性优化与实验指南](docs/reliability-v2.md)：实现、验证、可选 OpenJudge、诊断和指标边界。
 - [技术设计与评测契约](docs/design.md)：隔离、统计口径、失败处理、恢复和评分边界。
 - [面经问题映射、演示脚本与简历改写](docs/interview-map.md)：可核验的牛客来源、开源参考与项目讲述。

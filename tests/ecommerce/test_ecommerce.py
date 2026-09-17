@@ -70,7 +70,7 @@ def test_all_draft_and_family_disjoint(tmp_path):
 @pytest.mark.asyncio
 async def test_all_30_scripts_and_six_negative_controls():
     report = await run_demo()
-    assert report["summary"] == {"total": 30, "rules_pass": 30, "overall_pass": 0}
+    assert {k: report["summary"][k] for k in ("total", "rules_pass", "overall_pass")} == {"total": 30, "rules_pass": 30, "overall_pass": 0}
     assert all(t["grade"]["overall"] == "pending_semantic" for t in report["trials"])
     baseline = await run_demo("baseline")
     failed = {t["case"]["id"] for t in baseline["trials"] if t["grade"]["rules"] == "fail"}
@@ -169,7 +169,8 @@ async def test_missing_fault_and_abnormal_termination_fail():
     case = BY_ID["ec-lost-create"]
     result = await execute_case(case)
     result["faults_triggered"] = []
-    assert any(f["category"] == "fault_not_triggered" for f in grade(case, result)["failures"])
+    assert grade(case, result)["rules"] == "pass"
+    assert not grade(case, result)["recovery_eligible"]
     result = await execute_case(case, RunConfig(agent="demo-recovery", max_steps=2))
     assert grade(case, result)["rules"] == "fail"
 
@@ -183,7 +184,8 @@ async def test_semantic_record_bound_to_result_and_cannot_override_hard_failure(
         async def complete(self, messages, tools):
             assert len(messages) == 2 and not tools
             return LLMDecision("final", json.dumps({"label": "pass", "coverage": 2, "grounding": 2, "clarity": 2,
-                "evidence": ["退货申请已创建"], "rationale": "Simulated judge for adapter test, not human review."}))
+                "evidence": ["退货申请已创建"], "source_evidence": [{"path": "/initial_state/policies/0/text", "quote": "合成政策"}],
+                "rationale": "Simulated judge for adapter test, not human review."}))
 
     record = await assess(case, result, FakeJudge(), {"model": "fake-offline"})
     assert record["status"] == "completed"
@@ -240,7 +242,9 @@ async def test_model_transport_budget_usage_and_no_reference_leak(monkeypatch):
     first, exhausted = report["trials"]
     assert first["result"]["usage"] == {"input": 20, "output": 10}
     assert first["result"]["cost_estimate"] == pytest.approx(0.00004)
-    assert exhausted["result"]["usage"] is None and exhausted["grade"]["rules"] == "fail"
+    assert exhausted["result"]["usage"] is None and exhausted["grade"]["rules"] == "unscored"
+    assert exhausted["result"]["termination"] == "not_executed"
+    assert report["summary"]["execution_coverage"] == 0.5
     assert not exhausted["result"]["transport_attempts"]
     assert "offline-test-secret" not in json.dumps(report)
 
