@@ -1,0 +1,34 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电商售后 · 评测证据</title>
+<style>
+body{margin:0;background:#f5f6f8;color:#182536;font:16px/1.65 system-ui,sans-serif}main{max-width:1150px;margin:40px auto;padding:0 24px}
+h1{font-size:32px;margin:4px 0}h2{font-size:21px}small,.muted{color:#596c7b}section{padding:22px;background:white;border:1px solid #dbe2e9;border-radius:12px;margin:18px 0}
+select{padding:10px;max-width:100%;border:1px solid #9aa9b7;border-radius:6px}pre{white-space:pre-wrap;word-break:break-word;background:#f2f5f8;padding:14px;border-radius:6px;font:13px/1.65 ui-monospace,monospace}
+.warning{border-left:4px solid #ad730f;background:#fff8e9;padding:12px 18px}.stats{display:flex;gap:15px;flex-wrap:wrap}.stats b{font-size:24px;color:#106555}.pill{padding:4px 9px;background:#e7f3ee;border-radius:5px}
+details{border-top:1px solid #e3e9ed;padding:12px 0}summary{cursor:pointer}table{width:100%;border-collapse:collapse}td,th{text-align:left;border-bottom:1px solid #e3e9ed;padding:8px}
+</style><main><small>AGENTBENCH LAB / ECOMMERCE</small><h1>部分退货，结果必须可核对</h1>
+<p class="muted">政策 → 订单明细 → 优惠分摊 → 退货申请 → 故障恢复证据</p>
+<p class="warning">本地合成沙箱 · 全部数据 draft · 确定性脚本知道答案。以下不是模型能力成绩；没有真实退款，整体结论仍待语义评分。</p>
+<section><div class="stats" id="stats"></div><p><label for="cases">选择任务：</label><select id="cases"></select></p><div id="description"></div></section>
+<section><h2>逐轮结果与业务终态</h2><div id="turns"></div></section>
+<section><h2>工具与故障证据</h2><div id="events"></div></section>
+<section><h2>复现身份</h2><pre id="identity"></pre></section></main>
+<script>
+const node=(tag,text)=>{const n=document.createElement(tag);n.textContent=text;return n;};
+const pretty=x=>JSON.stringify(x,null,2);
+fetch('/api/report').then(r=>r.json()).then(report=>{
+ document.getElementById('stats').textContent=`样本 ${report.summary.total}　硬规则通过 ${report.summary.rules_pass}　整体通过 ${report.summary.overall_pass}`;
+ document.getElementById('identity').textContent=pretty({dataset_hash:report.dataset_hash,code_fingerprint:report.code_fingerprint,variant:report.variant});
+ const selector=document.getElementById('cases');
+ report.trials.forEach((t,i)=>{const option=node('option',`${t.case.title} · ${t.grade.rules}`);option.value=i;selector.append(option);});
+ function show(){
+  const t=report.trials[selector.value];const description=document.getElementById('description');description.replaceChildren();
+  description.append(node('p',`${t.case.id} / ${t.case.family} / ${t.case.split} / draft`),node('p',t.case.reference),node('pre',pretty(t.grade)));
+  const turns=document.getElementById('turns');turns.replaceChildren();
+  t.result.turn_snapshots.forEach((s,i)=>{turns.append(node('h3',`第 ${i+1} 轮`),node('p',t.case.turns[i]),node('pre',s.answer),node('pre',pretty(s.state.returns)));});
+  const events=document.getElementById('events');events.replaceChildren();
+  t.result.tools.forEach((e,i)=>{const d=node('details','');d.append(node('summary',`${i+1}. ${e.name} · ${e.result.ok?'成功':'失败'}${e.fault?' · 注入 '+e.fault:''}`),node('pre',pretty({arguments:e.arguments,result:e.result,fault:e.fault,cancelled:e.cancelled,harness_retry:e.harness_retry,returns_before:e.state_before.returns,returns_after:e.state_after.returns})));events.append(d);});
+ }
+ selector.value=Math.max(0,report.trials.findIndex(t=>t.case.id==='ec-lost-create'));selector.addEventListener('change',show);show();
+}).catch(e=>document.getElementById('stats').textContent='报告加载失败：'+e.message);
+</script></html>

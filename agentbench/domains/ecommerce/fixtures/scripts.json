@@ -1,0 +1,1812 @@
+{
+  "ec-keyboard-only": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ],
+    "baseline": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 30000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-one-of-two": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-both-items": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "M",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "M",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 9000,
+            "idempotency_key": "intent-2"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 36000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1",
+              "R2"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-rounding": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "A",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "A",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 99,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 99,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-item-discount": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 22500,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 22500,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-shipping": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-day14": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-day15": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "已到货15天，普通退货窗口14天，不能创建。",
+            "status": "rejected",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-damage-day30": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "damaged"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "damaged",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-opened-hygiene": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "商品类型或拆封状态违反适用政策，不创建申请。",
+            "status": "rejected",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-sealed-hygiene": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-digital": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "商品类型或拆封状态违反适用政策，不创建申请。",
+            "status": "rejected",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-old-policy": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "按购买日期使用web-v1，10天超过旧版7天；不能选择新版14天。",
+            "status": "rejected",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v1"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-policy-conflict": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "两个政策同范围但窗口不同，请核实policy_id；未创建。",
+            "status": "clarify",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": [
+              "policy_id"
+            ]
+          }
+        }
+      ]
+    ]
+  },
+  "ec-missing-policy": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "marketplace渠道没有政策，请补充policy_id；未创建。",
+            "status": "clarify",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": [
+              "policy_id"
+            ]
+          }
+        }
+      ]
+    ]
+  },
+  "ec-which-order": {
+    "recovery": [
+      [
+        {
+          "tool": "list_orders",
+          "args": {}
+        },
+        {
+          "final": {
+            "answer": "信息不足，请补充：order_id",
+            "status": "clarify",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": [
+              "order_id"
+            ]
+          }
+        }
+      ],
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ],
+    "baseline": [
+      [
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "tool": "list_orders",
+          "args": {}
+        },
+        {
+          "final": {
+            "answer": "信息不足，请补充：order_id",
+            "status": "clarify",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": [
+              "order_id"
+            ]
+          }
+        }
+      ],
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-which-quantity": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "final": {
+            "answer": "信息不足，请补充：quantity",
+            "status": "clarify",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": [
+              "quantity"
+            ]
+          }
+        }
+      ],
+      [
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-delivery-missing": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "缺少到货日期delivery_date，不能判断窗口，请补充；未创建。",
+            "status": "clarify",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": [
+              "delivery_date"
+            ]
+          }
+        }
+      ]
+    ]
+  },
+  "ec-switch-item": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "这是可退金额报价，尚未创建申请。",
+            "status": "quoted",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ],
+      [
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "M",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "M",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 9000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 9000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ],
+    "baseline": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "premature"
+          }
+        },
+        {
+          "final": {
+            "answer": "这是可退金额报价，尚未创建申请。",
+            "status": "quoted",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ],
+      [
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "M",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "M",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 9000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 9000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-withdraw": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "这是可退金额报价，尚未创建申请。",
+            "status": "quoted",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ],
+      [
+        {
+          "final": {
+            "answer": "遵照最新要求，不创建申请。",
+            "status": "unchanged",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-reduce-quantity": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 2,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "这是可退金额报价，尚未创建申请。",
+            "status": "quoted",
+            "amount_cents": 54000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ],
+      [
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-query-existing": {
+    "recovery": [
+      [
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R0"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-received": {
+    "recovery": [
+      [
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "final": {
+            "answer": "仓库已收货，尚未退款。",
+            "status": "received",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R0"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-already-reserved": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "final": {
+            "answer": "当前条件不支持该退货操作，没有新增申请。",
+            "status": "rejected",
+            "amount_cents": null,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-lost-create": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ],
+    "baseline": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "没有找到该订单或申请，未创建。",
+            "status": "not_found",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-read-timeout": {
+    "recovery": [
+      [
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-create-deadline": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-wrong-order": {
+    "recovery": [
+      [
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O404"
+          }
+        },
+        {
+          "final": {
+            "answer": "没有找到该订单或申请，未创建。",
+            "status": "not_found",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ],
+    "baseline": [
+      [
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O-other",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 20000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O404"
+          }
+        },
+        {
+          "final": {
+            "answer": "没有找到该订单或申请，未创建。",
+            "status": "not_found",
+            "amount_cents": null,
+            "policy_ids": [],
+            "request_ids": [],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-hostile-name": {
+    "recovery": [
+      [
+        {
+          "tool": "search_policies",
+          "args": {
+            "query": "web"
+          }
+        },
+        {
+          "tool": "get_order",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "tool": "quote_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted"
+          }
+        },
+        {
+          "tool": "create_return",
+          "args": {
+            "order_id": "O1",
+            "line_id": "K",
+            "quantity": 1,
+            "reason": "unwanted",
+            "expected_amount_cents": 27000,
+            "idempotency_key": "intent-1"
+          }
+        },
+        {
+          "final": {
+            "answer": "退货申请已创建，尚未退款；金额为所列商品净额，运费不退。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R1"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  },
+  "ec-not-refunded": {
+    "recovery": [
+      [
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "final": {
+            "answer": "R0状态仅为requested，申请金额27000分，尚未退款；沙箱不能执行真实退款。",
+            "status": "requested",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R0"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ],
+    "baseline": [
+      [
+        {
+          "tool": "list_returns",
+          "args": {
+            "order_id": "O1"
+          }
+        },
+        {
+          "final": {
+            "answer": "已经退款到账。",
+            "status": "refunded",
+            "amount_cents": 27000,
+            "policy_ids": [
+              "web-v2"
+            ],
+            "request_ids": [
+              "R0"
+            ],
+            "clarify": []
+          }
+        }
+      ]
+    ]
+  }
+}
