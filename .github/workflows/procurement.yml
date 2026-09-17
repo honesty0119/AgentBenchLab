@@ -1,0 +1,27 @@
+name: Procurement scenario
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  procurement:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: '1'
+      UV_LINK_MODE: copy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.8'
+          enable-cache: true
+      - run: uv sync --locked --python 3.12
+      - run: uv run python -m pytest tests/test_procurement.py -q
+      - run: uv run python examples/procurement/inspect_smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: procurement-inspect-${{ matrix.os }}
+          path: data/procurement/inspect_logs

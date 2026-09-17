@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>采购方案评测 · AgentBench Lab</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#182335;font:15px/1.7 system-ui,sans-serif}
+main{max-width:1200px;margin:auto;padding:32px}h1{margin:0;font-size:30px}h2{font-size:20px;margin:0 0 12px}
+.muted{color:#607086}.banner{padding:16px 20px;background:#fff0cb;border-radius:12px;margin:20px 0}
+.bar{display:flex;gap:16px;flex-wrap:wrap;margin:20px 0}select{padding:10px;border:1px solid #cbd5e1;border-radius:8px;max-width:100%}
+.card{background:white;padding:22px;border-radius:14px;margin:18px 0;box-shadow:0 2px 12px #18233508}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:9px;border-bottom:1px solid #e5e9f0;vertical-align:top}
+th{color:#52647c}.scroll{overflow:auto}.status{display:inline-block;padding:3px 10px;border-radius:8px;background:#e0e9f8}
+.pass{color:#146747;background:#e0f5eb}.fail{color:#a32929;background:#ffe4e4}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 ui-monospace,monospace}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid .card{margin:0}@media(max-width:750px){main{padding:16px}.grid{grid-template-columns:1fr}}
+</style></head><body><main><div class="muted">AgentBench Lab / Procurement</div><h1>采购方案评测</h1>
+<div class="banner" id="notice">正在加载本地证据…</div><div class="bar"><label>任务 <select id="case"></select></label>
+<label>执行方式 <select id="agent"></select></label></div><div id="content"></div></main><script>
+const esc=x=>String(x??'未知').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=x=>x===null||x===undefined?'未知':`¥${(x/100).toFixed(2)}`;
+let report;const cs=document.querySelector('#case'),as=document.querySelector('#agent');
+function render(){const t=report.trials.find(t=>t.case.id===cs.value&&t.agent===as.value);if(!t)return;
+let html=`<div class="card"><h2>${esc(t.case.title)}</h2><span class="status ${t.grade.label}">硬约束 ${esc(t.grade.label)}</span> <span class="status">整体 ${esc(t.grade.overall)}</span><p class="muted">家族 ${esc(t.case.family)} · ${esc(t.case.split)} · draft · ${esc(t.case.id)}</p>`;
+if(t.grade.diagnostic_hints.length)html+=`<p>失败分类：${esc(t.grade.diagnostic_hints.join(' / '))}</p>`;
+html+=`<p>故障配置 ${t.result.faults.configured}，实际触发 ${t.result.faults.triggered.length}；工具调用 ${t.result.tools.length}。</p></div>`;
+t.case.snapshots.forEach((s,i)=>{const shot=t.result.turn_snapshots[i];let plan=null;try{plan=JSON.parse(shot.answer).values.plan}catch{}
+html+=`<div class="card"><h2>第 ${i+1} 轮 · 需求版本 ${s.revision}</h2><p>目标：${s.objective==='min_cost'?'最低含税总成本':'满足全部硬约束即可'} · 预算 ${money(s.budget_cents)} · 截止 ${esc(s.deadline)}</p><p>${s.items.map(x=>`${esc(x.id)}：${x.quantity} ${esc(x.unit)}，${esc(x.spec)}，允许超采 ${x.max_overbuy}`).join('<br>')}</p><div class="scroll"><table><thead><tr><th>报价 / 版本</th><th>规格 / 包装</th><th>整包价格 / 税</th><th>MOQ / 库存</th><th>交期 / 有效期</th><th>供应商运费</th></tr></thead><tbody>`;
+s.quotes.forEach(q=>{html+=`<tr><td>${esc(q.id)} v${q.version}</td><td>${esc(q.spec)}<br>${esc(q.pack_size)} ${esc(q.unit)}/包</td><td>${money(q.price_cents)} / ${q.tax_included?'含税':q.tax_included===null?'税基未知':`未税 ${esc(q.tax_bps)} bps`}<br>${q.tiers.map(z=>`≥${z.min_packs}包：${money(z.price_cents)}`).join('<br>')}</td><td>${q.min_packs} / ${esc(q.stock_packs)} 包</td><td>${esc(q.lead_days)}天 / ${esc(q.valid_until)}</td><td>${money(s.shipping[q.supplier])}</td></tr>`});
+html+='</tbody></table></div></div><div class="grid">';
+html+=`<div class="card"><h2>Agent 草稿</h2>${plan?`<span class="status">${esc(plan.status)}</span><p>报告总额：<strong>${money(plan.total_cents)}</strong></p><p>${esc(plan.explanation)}</p><pre>${esc(JSON.stringify(plan.selections,null,2))}</pre>`:'本轮没有有效结果'}</div>`;
+const ref=t.grade.reference[i];html+=`<div class="card"><h2>独立评分证据</h2><p>状态：${esc(ref.status)}；完整枚举：${ref.complete?'是':'否'}</p><p>枚举组合：${ref.combinations}；参考最低总额：${money(ref.optimal_cents)}</p><p>${esc(ref.missing.join('，'))}</p><p class="muted">评分器数据仅在评测后展示，不发送给模型。自然语言质量仍待 Judge / 人工审核。</p></div></div>`;
+const cost=t.result.tools.filter(e=>e.turn===i&&e.name==='procurement_cost'&&e.result.ok).at(-1);
+if(cost)html+=`<div class="card"><h2>成本工具明细（须经独立评分核对）</h2><pre>${esc(JSON.stringify(cost.result.data,null,2))}</pre></div>`;
+});html+=`<details class="card"><summary>查看完整工具轨迹</summary><pre>${esc(JSON.stringify(t.result.tools,null,2))}</pre></details>`;
+document.querySelector('#content').innerHTML=html;}
+fetch('/api/report').then(r=>r.json()).then(r=>{report=r;document.querySelector('#notice').textContent=r.demo?'离线已知答案脚本演示 · 30 条合成 draft · 脚本通过率不是模型能力成绩 · 语义评分待完成':'模型评测证据 · 合成 draft · 规则与语义结论分开，未独立人审';
+const unique=[...new Map(r.trials.map(t=>[t.case.id,t.case])).values()];cs.innerHTML=unique.map(c=>`<option value="${esc(c.id)}">${esc(c.title)}</option>`).join('');
+as.innerHTML=[...new Set(r.trials.map(t=>t.agent))].map(a=>`<option>${esc(a)}</option>`).join('');
+cs.value=unique.some(c=>c.id==='proc-quantity-change')?'proc-quantity-change':unique[0].id;as.value=r.demo?'demo-recovery':as.value;render();}).catch(e=>{document.querySelector('#notice').textContent='报告加载失败：'+e.message});
+cs.onchange=as.onchange=render;
+</script></body></html>
