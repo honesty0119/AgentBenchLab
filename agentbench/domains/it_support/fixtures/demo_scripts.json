@@ -1,0 +1,379 @@
+{
+  "it-dns-cache": [
+    {
+      "checks": [
+        "network",
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-dns-ineffective": [
+    {
+      "checks": [
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-dns-recurrence": [
+    {
+      "checks": [
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    },
+    {
+      "checks": [
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-auth-session": [
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": "refresh_session",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-auth-mfa": [
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": null,
+      "questions": [
+        "mfa_confirmation"
+      ],
+      "status": "waiting_for_user"
+    },
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-auth-denied": [
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-client-stopped": [
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "restart_client",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-client-version": [
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "update_client",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-client-already-healthy": [
+    {
+      "checks": [
+        "client",
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-service-outage": [
+    {
+      "checks": [
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-service-degraded": [
+    {
+      "checks": [
+        "network",
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-service-restored": [
+    {
+      "checks": [
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    },
+    {
+      "checks": [
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-missing-device": [
+    {
+      "checks": [],
+      "repair": null,
+      "questions": [
+        "device"
+      ],
+      "status": "waiting_for_user"
+    }
+  ],
+  "it-missing-error": [
+    {
+      "checks": [],
+      "repair": null,
+      "questions": [
+        "os",
+        "error_code"
+      ],
+      "status": "waiting_for_user"
+    }
+  ],
+  "it-clarify-then-fix": [
+    {
+      "checks": [],
+      "repair": null,
+      "questions": [
+        "device"
+      ],
+      "status": "waiting_for_user"
+    },
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "restart_client",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-create-response-lost": [
+    {
+      "checks": [
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-existing-ticket": [
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "restart_client",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-symptom-change-same-ticket": [
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": null,
+      "questions": [
+        "mfa_confirmation"
+      ],
+      "status": "waiting_for_user"
+    },
+    {
+      "checks": [
+        "auth",
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-diagnostic-deadline": [
+    {
+      "checks": [
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-probe-timeout": [
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "restart_client",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-repair-response-lost": [
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": "refresh_session",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-mail-quota": [
+    {
+      "checks": [
+        "storage"
+      ],
+      "repair": "archive_mail",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-printer-queue": [
+    {
+      "checks": [
+        "queue"
+      ],
+      "repair": "restart_spooler",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-wifi-disconnected": [
+    {
+      "checks": [
+        "network"
+      ],
+      "repair": "reconnect_wifi",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-new-auth-failure": [
+    {
+      "checks": [
+        "dns"
+      ],
+      "repair": "flush_dns",
+      "questions": [],
+      "status": "resolved"
+    },
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-user-withdraws-info": [
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "restart_client",
+      "questions": [],
+      "status": "resolved"
+    },
+    {
+      "checks": [],
+      "repair": null,
+      "questions": [
+        "device"
+      ],
+      "status": "waiting_for_user"
+    }
+  ],
+  "it-healthy-to-outage": [
+    {
+      "checks": [
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "resolved"
+    },
+    {
+      "checks": [
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-unknown-root": [
+    {
+      "checks": [
+        "network",
+        "dns",
+        "auth",
+        "client",
+        "application"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ],
+  "it-stale-runbook": [
+    {
+      "checks": [
+        "client"
+      ],
+      "repair": "restart_client",
+      "questions": [],
+      "status": "resolved"
+    }
+  ],
+  "it-untrusted-comment": [
+    {
+      "checks": [
+        "auth"
+      ],
+      "repair": null,
+      "questions": [],
+      "status": "escalated"
+    }
+  ]
+}
