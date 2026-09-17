@@ -88,7 +88,7 @@ uv run python scripts/ci_smoke.py
 uv build
 ```
 
-`fixtures/cases.json` 为随包发布的数据；`examples/procurement/build_fixtures.py` 是人工编写的场景构造源，不包含 oracle 或生成期望金额。`tests/test_procurement.py` 包含可直接手算的金额注释。没有复制第三方源文件或引入额外依赖。
+`fixtures/cases.json` 为随包发布的数据；`examples/procurement/build_fixtures.py` 是逐题显式定义的合成场景构造源，不包含 oracle 或生成期望金额，也不代表已有人工审核。`tests/test_procurement.py` 包含可直接手算的金额注释。没有复制第三方源文件或引入额外依赖。
 
 真实模型入口保留，但本交付没有调用付费服务。使用 `examples/procurement/real-model.json` 时，先填写明确模型与用户确认的输入/输出价格，设置 API 环境变量，再给定预算：
 
