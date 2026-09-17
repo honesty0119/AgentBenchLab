@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import os
 import tempfile
@@ -10,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-from app.context import ContextBuilder
+from agentbench.context import EvaluationContext, InputBudgetExceeded
 from app.database import SessionStore
 from app.llm.base import LLMError
 from app.models import LLMDecision, ToolCall
@@ -34,40 +35,51 @@ You may use multiple tools in sequence. The environment has no internet access o
 PROMPT_HASH = digest(SYSTEM)
 
 
-class FixedContext(ContextBuilder):
-    def _system_content(self):
-        return self.system_prompt + "\nEvaluation clock: 2026-09-15T00:00:00Z."
+FixedContext = EvaluationContext
 
 
 class ModelClient:
     """Serial tool calling with explicit output cap and bounded HTTP retries."""
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, config: RunConfig | None = None):
+        self.config = config or RunConfig(model=model)
         self.key = os.environ.get("AGENTBENCH_API_KEY", "")
         if not self.key:
             raise ValueError("AGENTBENCH_API_KEY is not configured")
-        self.url = endpoint("AGENTBENCH_BASE_URL")
+        self.url = self.config.model_endpoint or endpoint("AGENTBENCH_BASE_URL")
         self.model = model
         self.attempts: list[dict] = []
+        self.requests = []
+        self.wait_ms = 0.0
+        self.http = httpx.AsyncClient(timeout=45)
+
+    async def aclose(self):
+        await self.http.aclose()
 
     async def complete(self, messages, tools):
-        for attempt in range(3):
+        payload = {"model": self.model, "messages": messages, "tools": tools,
+                   "tool_choice": "auto", "parallel_tool_calls": False,
+                   "temperature": 0, "max_tokens": self.config.max_output_tokens}
+        if len(json.dumps(payload, ensure_ascii=False)) > self.config.request_chars:
+            raise LLMError("request_budget_exceeded")
+        self.requests.append(copy.deepcopy(payload))
+        for attempt in range(self.config.http_retries + 1):
             started = time.perf_counter()
+            entry = {"attempt": attempt + 1}
+            self.attempts.append(entry)
             try:
-                async with httpx.AsyncClient(timeout=45) as client:
-                    response = await client.post(self.url + "/chat/completions",
-                        headers={"Authorization": f"Bearer {self.key}"},
-                        json={"model": self.model, "messages": messages, "tools": tools,
-                              "tool_choice": "auto", "parallel_tool_calls": False,
-                              "temperature": 0, "max_tokens": 2048})
-                self.attempts.append({"attempt": attempt + 1, "http_status": response.status_code,
-                                      "duration_ms": round((time.perf_counter() - started) * 1000)})
-                if response.status_code in {429, 500, 502, 503, 504} and attempt < 2:
+                response = await self.http.post(self.url + "/chat/completions",
+                    headers={"Authorization": f"Bearer {self.key}"}, json=payload)
+                entry.update(http_status=response.status_code,
+                             duration_ms=round((time.perf_counter() - started) * 1000))
+                if response.status_code in {429, 500, 502, 503, 504} and attempt < self.config.http_retries:
+                    self.wait_ms += 250 * 2 ** attempt
                     await asyncio.sleep(0.25 * 2 ** attempt)
                     continue
                 if response.is_error:
                     raise LLMError(f"model_http_{response.status_code}")
                 raw = response.json()
+                self.attempts[-1]["usage"] = raw.get("usage")
                 choice = raw["choices"][0]
                 if choice.get("finish_reason") == "length":
                     raise LLMError("model_output_truncated")
@@ -85,11 +97,17 @@ class ModelClient:
                         ToolCall(call["id"], call["function"]["name"], arguments), usage)
                 return LLMDecision("final", message.get("content") or "", usage=usage)
             except (httpx.TimeoutException, httpx.NetworkError):
-                self.attempts.append({"attempt": attempt + 1, "error": "transport_error"})
-                if attempt == 2:
+                entry.update(error="transport_error", duration_ms=round((time.perf_counter()-started)*1000))
+                if attempt == self.config.http_retries:
                     raise LLMError("model_transport_error") from None
+                self.wait_ms += 250 * 2 ** attempt
                 await asyncio.sleep(0.25 * 2 ** attempt)
-            except (KeyError, ValueError, TypeError, IndexError):
+            except asyncio.CancelledError:
+                entry.setdefault("duration_ms", round((time.perf_counter()-started)*1000))
+                if "http_status" not in entry:
+                    entry["error"] = "request_cancelled"
+                raise
+            except (KeyError, ValueError, TypeError, IndexError, AttributeError):
                 raise LLMError("model_invalid_response") from None
         raise LLMError("model_retries_exhausted")
 
@@ -117,50 +135,90 @@ class ScriptedClient:
 
 
 async def execute_case(case: Case, config: RunConfig) -> dict:
-    env = Environment(case.files, case.faults)
-    client = (ModelClient(config.model) if config.agent == "openai-compatible"
+    env = Environment({p: case.files[p] for p in case.file_order}, [] if config.intervention == "no_faults" else case.faults,
+                      config.tool_retry_policy, config.tool_retries)
+    client = (ModelClient(config.model, config) if config.agent == "openai-compatible"
               else ScriptedClient(case.id, config.agent))
     started = time.perf_counter()
     answer = ""
     termination = "completed"
     answers = []
+    snapshots = []
+    failure_detail = None
     with tempfile.TemporaryDirectory(prefix="agentbench-") as tmp:
         store = SessionStore(str(Path(tmp) / "session.db"))
         session = store.create_session(case.id)["id"]
-        runtime = AgentRuntime(store, client, env.registry(),
-            FixedContext(store, SYSTEM, max_context_chars=config.context_chars, recent_messages=8,
-                         timezone_name="UTC"),
-            max_steps=config.max_steps, tool_timeout_seconds=10)
+        context = EvaluationContext(store, SYSTEM, max_context_chars=config.context_chars, recent_messages=8,
+            timezone_name="UTC", policy="full" if config.intervention == "full_context" else config.context_policy)
+        runtime = AgentRuntime(store, client, env.registry(), context,
+            max_steps=config.max_steps, tool_timeout_seconds=config.tool_timeout_seconds)
         try:
             async with asyncio.timeout(config.timeout_seconds):
                 for index, turn in enumerate(case.turns):
+                    env.turn = index
+                    if config.intervention == "reference_evidence":
+                        if not case.evidence_paths:
+                            raise ValueError("Reference evidence intervention requires evidence_paths")
+                        turn += "\nReference evidence (diagnostic intervention):\n" + json.dumps(
+                            {p: case.files[p] for p in case.evidence_paths}, ensure_ascii=False)
                     if isinstance(client, ScriptedClient):
                         client.begin_turn(index)
                     chat = await runtime.chat(session, turn)
                     answer = chat.answer
                     answers.append(answer)
+                    snapshots.append({"answer": answer, "files": copy.deepcopy(env.files),
+                        "todos": copy.deepcopy(env.todos), "reads": sorted(env.reads),
+                        "tools": copy.deepcopy(env.events)})
                     if store.get_session(session)["status"] == "failed":
                         events = [t["event"] for t in store.list_traces(session, limit=10000)]
                         termination = next((e for e in reversed(events) if e in
                             {"llm_error", "repeated_tool_call", "max_steps_exceeded"}), "runtime_error")
+                        failure_detail = next((t["payload"].get("error") for t in reversed(store.list_traces(session, limit=10000))
+                                               if t["event"] == "llm_error"), None)
                         break
+        except InputBudgetExceeded as exc:
+            termination, failure_detail = "input_budget_exceeded", str(exc)
         except TimeoutError:
             termination = "timeout"
+        finally:
+            if isinstance(client, ModelClient):
+                await client.aclose()
         traces = store.list_traces(session, limit=10000)
         messages = store.list_messages(session)
-    usages = [t["payload"].get("usage", {}) for t in traces if t["event"] == "llm_decision"]
-    complete_usage = (termination == "completed" and bool(usages)
-                      and all("prompt_tokens" in u and "completion_tokens" in u for u in usages)
-                      and all(a.get("http_status") == 200 for a in getattr(client, "attempts", [])))
-    usage = ({"input": sum(u["prompt_tokens"] for u in usages),
-              "output": sum(u["completion_tokens"] for u in usages)} if complete_usage else None)
+    attempts = getattr(client, "attempts", [])
+    known = [a["usage"] for a in attempts if isinstance(a.get("usage"), dict)
+             and all(type(a["usage"].get(k)) is int and a["usage"][k] >= 0
+                     for k in ("prompt_tokens", "completion_tokens"))]
+    complete = bool(attempts) and len(known) == len(attempts)
+    known_usage = {"input": sum(u["prompt_tokens"] for u in known),
+                   "output": sum(u["completion_tokens"] for u in known)} if known else None
     cost = None
-    if usage is not None and config.input_price_per_million is not None:
-        cost = (usage["input"] * config.input_price_per_million
-                + usage["output"] * config.output_price_per_million) / 1000000
-    return {"answer": answer, "turn_answers": answers, "termination": termination,
+    if known_usage is not None and config.input_price_per_million is not None:
+        cost = (known_usage["input"] * config.input_price_per_million +
+                known_usage["output"] * config.output_price_per_million) / 1000000
+    if termination == "completed":
+        failure_class = None
+    elif failure_detail and (failure_detail.startswith("model_http_") or failure_detail == "model_transport_error"):
+        failure_class = "provider_error"
+    elif termination in {"input_budget_exceeded", "max_steps_exceeded", "repeated_tool_call", "timeout"} or failure_detail == "request_budget_exceeded":
+        failure_class = "harness_limit"
+    elif termination == "llm_error":
+        failure_class = "model_protocol"
+    else:
+        failure_class = "harness_error"
+    return {"answer": answer, "turn_answers": answers, "turn_snapshots": snapshots, "termination": termination,
+            "failure_class": failure_class, "failure_detail": failure_detail,
             "files": env.files, "todos": env.todos, "reads": sorted(env.reads), "tools": env.events,
-            "traces": traces, "messages": messages, "usage": usage, "cost_estimate": cost,
+            "traces": traces, "messages": messages, "context_requests": context.requests,
+            "model_requests": getattr(client, "requests", []),
+            "usage": known_usage if complete else None, "known_usage": known_usage,
+            "usage_complete": complete, "unknown_usage_attempts": len(attempts)-len(known),
+            "cost_estimate": cost if complete else None, "known_cost": cost,
+            "faults": {"configured": len(env.faults), "triggered": sorted(env.triggered)},
+            "timing": {"model_ms": sum(a.get("duration_ms", 0) for a in attempts),
+                       "tool_ms": sum(e["duration_ms"] for e in env.events),
+                       "retry_wait_ms": getattr(client, "wait_ms", 0)},
             "duration_ms": round((time.perf_counter() - started) * 1000, 2),
-            "transport_attempts": getattr(client, "attempts", []),
-            "demo": config.agent.startswith("demo-"), "prompt_hash": PROMPT_HASH}
+            "transport_attempts": attempts,
+            "demo": config.agent.startswith("demo-"), "prompt_hash": PROMPT_HASH,
+            "intervention": config.intervention}

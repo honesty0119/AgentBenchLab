@@ -122,7 +122,19 @@ add("todo-select", "state", "只完成指定待办", ["创建提交报告、整�
     [[call("todo", action="add", title="提交报告"), call("todo", action="add", title="整理数据"),
       call("todo", action="complete", id=1), final("已完成指定待办。")]], split="test")
 
+# Additional evaluation contracts, deliberately independent of demo outputs.
+for case in cases:
+    case["evidence_paths"] = sorted({p for c in case["checks"] if c["kind"] in {"citations", "evidence_recall"} for p in c["expected"]})
+    case["semantic_required"] = case["id"] in {"missing", "conflict"}
+    if case["id"] == "deadline":
+        case["checks"].append(check("answer_contains", expected="2026-10-12"))
+    if case["id"] in {"multi-turn", "long-context"}:
+        case["checks"].append({**check("answer_contains", expected="PDF" if case["id"] == "multi-turn" else "ALPHA"), "turn": 0})
+    for fault in case["faults"]:
+        fault["match"] = ({"action": "add", "title": "提交报告"} if fault["tool"] == "todo" else
+                          {"path": "note.md"} if fault["tool"] == "read_file" else {"query": "负责人"})
+
 OUT.mkdir(parents=True, exist_ok=True)
-(OUT / "cases.json").write_text(json.dumps({"version": "0.1.0", "cases": cases}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+(OUT / "cases.json").write_text(json.dumps({"version": "0.2.0", "cases": cases}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (OUT / "demo_scripts.json").write_text(json.dumps(scripts, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"Authored {len(cases)} draft tasks; all demo scripts are fixtures, not benchmark results.")

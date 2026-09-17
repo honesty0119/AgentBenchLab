@@ -12,6 +12,7 @@ from agentbench.analysis import compare, summary
 from agentbench.runner import create_run, worker
 from agentbench.schema import RunConfig
 from agentbench.storage import Store, encode
+from agentbench.experiments import regrade_run, variants
 
 
 async def finish_run(store: Store, run_id: str):
@@ -48,6 +49,14 @@ def main():
     c.add_argument("candidate")
     c.add_argument("--gate", action="store_true")
     c.add_argument("--max-drop", type=float, default=0)
+    c.add_argument("--diagnostic", action="store_true")
+    c.add_argument("--metric", choices=["rules", "overall"], default="rules")
+    c.add_argument("--cohort", help="Common Judge fingerprint required for semantic comparison")
+    rg = sub.add_parser("regrade")
+    rg.add_argument("run_id")
+    va = sub.add_parser("variants")
+    va.add_argument("mode", choices=["reorder", "rename", "distractor"])
+    va.add_argument("--config", type=Path)
     args = parser.parse_args()
     if args.command == "serve":
         import uvicorn
@@ -83,12 +92,20 @@ def main():
         else:
             print(encode(payload["summary"]))
     elif args.command == "compare":
-        result = compare(store, args.base, args.candidate)
+        if args.gate and args.diagnostic:
+            raise ValueError("Diagnostic interventions cannot serve as a regression gate")
+        result = compare(store, args.base, args.candidate, diagnostic=args.diagnostic,
+                         metric=args.metric, cohort=args.cohort)
         print(encode(result))
         if args.gate:
             if not result["comparable"] or result["delta"] < -args.max_drop or any(
                     c["before"] == "pass" and c["after"] == "fail" for c in result.get("changes", [])):
                 raise SystemExit(1)
+    elif args.command == "regrade":
+        print(encode(regrade_run(store, args.run_id)))
+    elif args.command == "variants":
+        config = RunConfig.model_validate_json(args.config.read_text("utf-8")) if args.config else RunConfig()
+        print(encode(variants(store, config, args.mode)))
 
 
 if __name__ == "__main__":

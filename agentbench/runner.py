@@ -12,10 +12,10 @@ from filelock import FileLock
 
 from agentbench.agents import PROMPT_HASH
 from agentbench.dataset import select_cases
-from agentbench.grading import SCORER_VERSION
+from agentbench.grading import SCORER_VERSION, scorer_fingerprint
 from agentbench.schema import Case, RunConfig, digest
 from agentbench.storage import Store
-from agentbench.settings import endpoint
+from agentbench.settings import endpoint, validate_endpoint
 
 
 def code_manifest():
@@ -36,26 +36,33 @@ def code_manifest():
 def create_run(store: Store, config: RunConfig):
     config = config.model_copy(deep=True)
     if config.agent == "openai-compatible":
+        config.model_endpoint = validate_endpoint(config.model_endpoint or endpoint("AGENTBENCH_BASE_URL"))
         config.model = config.model or os.environ.get("AGENTBENCH_MODEL", "")
         if not config.model or not os.environ.get("AGENTBENCH_API_KEY"):
             raise ValueError("Configure AGENTBENCH_MODEL and AGENTBENCH_API_KEY first")
     else:
         config.model = config.agent
     cases, dataset_hash = select_cases(config, store.root)
+    if config.intervention == "reference_evidence" and any(not c.evidence_paths for c in cases):
+        raise ValueError("Reference evidence intervention requires evidence_paths on every selected case")
     config.dataset_hash = dataset_hash
-    manifest = {"dataset_hash": dataset_hash, "scorer_version": SCORER_VERSION,
+    manifest = {"dataset_hash": dataset_hash, "scorer_version": SCORER_VERSION, "scorer_hash": scorer_fingerprint(),
                 "prompt_hash": PROMPT_HASH, "code": code_manifest(),
                 "demo": config.agent.startswith("demo-"), "cases": [c.model_dump() for c in cases],
                 "demo_script_hash": hashlib.sha256((Path(__file__).parent / "fixtures" / "demo_scripts.json").read_bytes()).hexdigest(),
-                "generation": {"temperature": 0, "max_tokens": 2048, "parallel_tool_calls": False,
-                               "max_http_retries": 2, "tool_timeout_seconds": 10},
-                "model_endpoint": endpoint("AGENTBENCH_BASE_URL") if config.agent == "openai-compatible" else None}
+                "generation": {"temperature": 0, "max_tokens": config.max_output_tokens, "parallel_tool_calls": False,
+                               "max_http_retries": config.http_retries, "tool_timeout_seconds": config.tool_timeout_seconds},
+                "intervention": config.intervention,
+                "model_endpoint": config.model_endpoint if config.agent == "openai-compatible" else None}
     return store.create_run(config.model_dump(), manifest)
 
 
 async def execute_run(store: Store, id: str):
     run = store.get_run(id)
     config = RunConfig.model_validate(run["config"])
+    if config.agent == "openai-compatible" and not config.model_endpoint:
+        store.set_status(id, "failed", "Legacy run lacks a pinned endpoint; create a new experiment")
+        return
     # Resume must never mix changed agent/grader code with earlier trial results.
     if run["manifest"]["code"]["source_hash"] != code_manifest()["source_hash"]:
         store.set_status(id, "failed", "Source changed since experiment creation; create a new run")

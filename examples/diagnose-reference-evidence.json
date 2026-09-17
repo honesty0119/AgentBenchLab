@@ -1,0 +1,21 @@
+{
+  "agent": "openai-compatible",
+  "split": "all",
+  "repeats": 3,
+  "concurrency": 2,
+  "max_steps": 12,
+  "context_chars": 24000,
+  "timeout_seconds": 120,
+  "context_policy": "preserve_current",
+  "tool_retry_policy": "none",
+  "http_retries": 2,
+  "tool_timeout_seconds": 10,
+  "max_output_tokens": 2048,
+  "request_chars": 200000,
+  "name": "诊断 · 提供证据",
+  "intervention": "reference_evidence",
+  "case_ids": [
+    "deadline",
+    "inventory"
+  ]
+}

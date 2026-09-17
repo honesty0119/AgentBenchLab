@@ -43,6 +43,10 @@ class Store:
                     id INTEGER PRIMARY KEY, trial_id TEXT NOT NULL REFERENCES trials(id),
                     created TEXT NOT NULL, payload TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS regrades (
+                    id INTEGER PRIMARY KEY, trial_id TEXT NOT NULL REFERENCES trials(id),
+                    created TEXT NOT NULL, payload TEXT NOT NULL
+                );
             ''')
 
     @contextmanager
@@ -96,7 +100,7 @@ class Store:
     def get_trial(self, id):
         with self.connect() as db:
             item = self.decode(db.execute("SELECT * FROM trials WHERE id=?", (id,)).fetchone())
-            for table in ("reviews", "judgements"):
+            for table in ("reviews", "judgements", "regrades"):
                 item[table] = [self.decode(r) for r in db.execute(
                     f"SELECT * FROM {table} WHERE trial_id=? ORDER BY id", (id,))]
         return item
@@ -144,7 +148,7 @@ class Store:
             db.execute("UPDATE trials SET status='pending' WHERE run_id=? AND status NOT IN ('completed', 'error')", (id,))
 
     def annotate(self, table, trial_id, payload):
-        if table not in {"reviews", "judgements"}:
+        if table not in {"reviews", "judgements", "regrades"}:
             raise ValueError("Unknown annotation table")
         self.get_trial(trial_id)
         with self.connect() as db:

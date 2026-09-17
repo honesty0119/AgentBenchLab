@@ -4,7 +4,7 @@
 
 Local, single-user evaluation of Markdown/CSV document agents. The application is
 not a hosted multi-tenant service. Default binding is loopback. There is no model-generated
-code execution, browser control, arbitrary host-file tool or external-agent adapter in v0.1.
+code execution, browser control, arbitrary host-file tool or external-agent adapter in v0.2.
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ SQLite session database. The temporary database is cleaned up; complete relevant
 traces, files and state are serialized into the experiment database. Original time-dependent
 context is replaced with a fixed evaluation clock. A time limit applies to the entire case;
 max_steps applies to each user turn, as in the original loop. Context budgets count characters,
-not tokens. Original deterministic summarization remains a baseline, not an improved algorithm.
+not tokens. The original summarizer remains the legacy baseline. The default wrapper preserves the current request and the latest atomic tool exchange, or fails explicitly if they cannot fit. Full history still respects the real request character budget, including tool schemas.
 
 ## Judging contract
 
@@ -56,8 +56,7 @@ and state comparisons reproducible, but does not capture all natural-language co
 `citations` checks required path coverage and validity only; it is NOT proof of entailment.
 `evidence_recall` measures whether relevant full files were exposed through a tool; it is NOT
 a ranking metric or a complete RAG evaluation. Search is substring search, not embedding retrieval.
-Rule-based numeric grading checks the `values` field. A contradictory natural-language explanation
-may still pass those checks and should be identified by Judge/human review. File-edit tasks explicitly
+Rule-based numeric grading checks the `values` field. Explicit answer_contains/answer_excludes checks catch authored textual counterexamples. Other contradictions can still pass numeric checks and require semantic evaluation. semantic_required tasks remain pending until a matching Judge cohort passes; hard-rule failures always dominate. File-edit tasks explicitly
 require exact other-character preservation, making byte/text equality appropriate in this suite.
 
 All hard checks plus normal termination must pass. Per-criterion results stay available.
@@ -78,10 +77,10 @@ is requested; explanations are short evidence-based grading reasons.
   incomplete (including retries/errors) produces unknown usage/cost, never a fabricated zero.
 - Cost is an estimate in the user's chosen common currency using explicit prices per million
   input/output tokens; cache discounts and failed-request billing are not estimated.
-- Paired comparisons require completed runs, matching dataset hash, scorer version, case IDs,
+- Paired comparisons require completed runs, matching dataset hash, scorer version and implementation fingerprint, case IDs,
   repetition indices and demo/real mode. Different config fields are displayed. The user must
   control confounders; an equal task set alone cannot identify causation.
-- Bootstrap samples task-level deltas; repeats are clustered within their task. There are 2,000
+- Bootstrap samples task-family clusters of task-level mean deltas; repeats are first aggregated within their task. There are 2,000
   resamples with seed 42. Very small/nonrepresentative sets limit inference. No industry ranking.
 - Strict CLI gate rejects incomplete comparison, any pass→fail transition or an overall drop
   beyond the supplied threshold. It is deliberately conservative for small regression suites;
@@ -101,7 +100,7 @@ is requested; explanations are short evidence-based grading reasons.
 Human review hides identity and auto scores in the review dialog/API, but is not a guarantee that
 the reviewer never saw those values previously. Labels are append-only and latest per reviewer is
 used. Conflicting/uncertain human labels and judge failures/uncertainty are excluded with counts.
-Agreement and Cohen's κ refer to human consensus versus Judge, not inter-annotator agreement.
+Different Judge models, endpoints, backends or grading fingerprints require explicit cohort selection and cannot be pooled. Agreement and Cohen's κ refer to human consensus versus Judge, not inter-annotator agreement.
 Single-class degenerate κ is null. The number of reviewers is reported. The application does not
 create fake human labels or automatically promote draft tasks to reviewed.
 
@@ -115,9 +114,13 @@ CLI `worker --once` claims the oldest queued experiment. Keys are read from envi
 URLs with credentials/query fragments are rejected. Data, logs, `.env` and local screenshots are
 excluded from Git. This is a local tool, not an authenticated network service.
 
+## v0.2 implementation details
+
+See [the reliability guide](reliability-v2.md) for configurable harness policies, actual tool cancellation, resource accounting, append-only regrading, diagnostic interventions, draft variants and the optional OpenJudge adapter. Comparisons explicitly select rules or overall metrics; overall comparison requires one common Judge cohort and completed semantic judgements.
+
 ## Next extensions
 
 Independent dataset review; stronger semantic assertion types; position-swapped pairwise judging;
 real tokenizer budgets; retrieval/reranking adapters; nanobot integration; DOCX/PDF structural and
 rendered-layout checks; larger private holdouts; container environments via Harbor. These are not
-advertised as implemented v0.1 capabilities.
+advertised as implemented v0.2 capabilities.

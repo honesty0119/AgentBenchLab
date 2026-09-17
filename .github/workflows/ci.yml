@@ -28,3 +28,13 @@ jobs:
         with:
           name: evaluation-evidence-${{ matrix.os }}
           path: artifacts/ci
+  openjudge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.8'
+          enable-cache: true
+      - run: uv sync --locked --python 3.12 --extra openjudge
+      - run: uv run --extra openjudge pytest tests/test_openjudge.py -q

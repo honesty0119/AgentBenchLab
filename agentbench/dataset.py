@@ -25,7 +25,7 @@ def validate_dataset(raw: dict) -> tuple[list[Case], str]:
             raise ValueError(f"Task family leaks across splits: {case.family}")
         if not any(c.hard for c in case.checks):
             raise ValueError(f"No hard criterion: {case.id}")
-    return cases, digest(raw)
+    return cases, digest({**raw, "cases": [c.model_dump() for c in cases]})
 
 
 def select_cases(config: RunConfig, data_root: Path | None = None) -> tuple[list[Case], str]:
@@ -37,8 +37,10 @@ def select_cases(config: RunConfig, data_root: Path | None = None) -> tuple[list
         if not path.exists():
             raise ValueError("Unknown dataset version")
         cases, version = load_dataset(path)
-        if version != config.dataset_hash:
+        legacy_hash = digest(json.loads(path.read_text("utf-8")))
+        if config.dataset_hash not in {version, legacy_hash}:
             raise ValueError("Dataset snapshot hash mismatch")
+        version = config.dataset_hash
         if config.agent.startswith("demo-"):
             raise ValueError("Demo scripts only support the bundled dataset; use a real model for custom tasks")
     known = {c.id for c in cases}
@@ -68,6 +70,10 @@ def list_datasets(data_root: Path):
     for path in paths:
         raw = json.loads(path.read_text("utf-8"))
         cases, version = validate_dataset(raw)
+        if path != DATASET:
+            if path.stem not in {version, digest(raw)}:
+                raise ValueError("Dataset snapshot hash mismatch")
+            version = path.stem
         result.append({"dataset_hash": version, "version": raw.get("version", "unknown"),
                        "count": len(cases), "builtin": path == DATASET})
     return result

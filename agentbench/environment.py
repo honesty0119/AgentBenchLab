@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import asyncio
 import time
 from collections import Counter
 from typing import Any
@@ -16,7 +17,7 @@ from agentbench.schema import Fault
 class Environment:
     """A virtual filesystem: no model-supplied path is opened on the host."""
 
-    def __init__(self, files: dict[str, str], faults: list[Fault]):
+    def __init__(self, files: dict[str, str], faults: list[Fault], retry_policy="none", retries=1):
         self.initial = copy.deepcopy(files)
         self.files = copy.deepcopy(files)
         self.faults = faults
@@ -25,6 +26,10 @@ class Environment:
         self.counts: Counter = Counter()
         self.events: list[dict] = []
         self.reads: set[str] = set()
+        self.retry_policy, self.retries = retry_policy, retries
+        self.turn = 0
+        self.fault_counts: Counter = Counter()
+        self.triggered: set[int] = set()
 
     def registry(self) -> ToolRegistry:
         registry = ToolRegistry()
@@ -34,11 +39,22 @@ class Environment:
 
     async def execute(self, name: str, args: dict, context: ToolContext) -> ToolResult:
         self.counts[name] += 1
-        fault = next((f for f in self.faults if f.tool == name
-                      and f.occurrence == self.counts[name]), None)
+        fault = None
+        fault_index = None
+        for i, f in enumerate(self.faults):
+            if f.tool == name and all(args.get(k) == v for k, v in f.match.items()):
+                self.fault_counts[i] += 1
+                if i not in self.triggered and self.fault_counts[i] == f.occurrence:
+                    fault, fault_index = f, i
+                    self.triggered.add(i)
+                    break
         started = time.perf_counter()
+        before = dict(self.files)
         try:
-            if fault and fault.mode == "timeout":
+            if fault and fault.mode == "deadline":
+                await asyncio.sleep(fault.delay_seconds)
+                result = await self._execute(name, args, context)
+            elif fault and fault.mode == "timeout":
                 result = ToolResult(False, error="injected transient timeout", retryable=True)
             elif fault and fault.mode == "empty":
                 result = ToolResult(True, data=[])
@@ -49,14 +65,22 @@ class Environment:
                                         retryable=True)
         except (ValueError, KeyError) as exc:
             result = ToolResult(False, error=str(exc))
+        except asyncio.CancelledError:
+            self.events.append({"event": "tool", "name": name, "arguments": copy.deepcopy(args),
+                "turn": self.turn, "result": ToolResult(False, error="execution_cancelled").as_dict(),
+                "fault": fault.mode if fault else None, "fault_id": fault_index,
+                "duration_ms": round((time.perf_counter()-started)*1000, 3), "changes": {}, "cancelled": True})
+            raise
         self.events.append({"event": "tool", "name": name, "arguments": args,
                             "result": result.as_dict(), "fault": fault.mode if fault else None,
+                            "fault_id": fault_index, "turn": self.turn,
+                            "changes": {p: {"before": before.get(p), "after": v} for p, v in self.files.items() if before.get(p) != v},
                             "duration_ms": round((time.perf_counter() - started) * 1000, 3)})
         return result
 
     async def _execute(self, name: str, args: dict, context: ToolContext) -> ToolResult:
         if name == "list_files":
-            return ToolResult(True, sorted(self.files))
+            return ToolResult(True, list(self.files))
         if name == "read_file":
             path = args["path"]
             if path not in self.files:
@@ -113,7 +137,15 @@ class EnvironmentTool(Tool):
                              "required": required, "additionalProperties": False}
 
     async def execute(self, arguments: dict[str, Any], context: ToolContext) -> ToolResult:
-        return await self.env.execute(self.name, arguments, context)
+        safe = self.name in {"read_file", "search", "list_files", "calculator"} or (
+            self.name == "todo" and (arguments.get("action") == "list" or
+            (arguments.get("action") == "add" and bool(arguments.get("idempotency_key")))))
+        for attempt in range(1 + (self.env.retries if self.env.retry_policy == "safe" and safe else 0)):
+            result = await self.env.execute(self.name, arguments, context)
+            self.env.events[-1]["harness_retry"] = attempt
+            if result.ok or not result.retryable:
+                break
+        return result
 
 
 S = {"type": "string"}

@@ -25,10 +25,10 @@ uv run agentbench serve
 | 面试与工程问题 | 已实现的证据 |
 | --- | --- |
 | 评测集怎么构建、避免泄漏？ | 23 条合成任务，8 类场景；任务家族隔离；来源、审核状态、JSON 导入、不可变内容哈希 |
-| 怎么判断 Agent 真正完成任务？ | 数值、引用路径、文件变化、待办终态与终止原因逐项断言 |
-| Agent 失败在哪里？ | 原始输入、最终产物、逐步工具轨迹；超时、空返回、写成功但响应丢失的故障注入 |
-| 模型评分可信吗？ | Judge v1/v2、证据片段校验、人工盲审入口、分歧统计和 Cohen’s κ |
-| 改进是否稳定？ | 独立重复试验、配对任务 Bootstrap 区间、逐题回归与 CLI 门禁 |
+| 怎么判断 Agent 真正完成任务？ | 逐轮断言、正文与中间状态检查；规则、语义和整体结论分开 |
+| Agent 失败在哪里？ | 实际请求与上下文快照；语义触发故障、真实期限取消、安全重试及诊断干预 |
+| 模型评分可信吗？ | Judge v1/v2、可选 OpenJudge；按配置指纹校准、证据校验和人工盲审 |
+| 改进是否稳定？ | 独立重复、按任务家族 Bootstrap、规则/整体回归门禁、草稿鲁棒性变体 |
 | 怎么复现？ | Inspect 原生执行日志；配置、数据、提示词、源代码与依赖版本清单；断点恢复 |
 
 内置场景：事实问答、多文档综合、表格计算、定向编辑、缺失/冲突、多轮上下文、故障恢复、状态操作。
@@ -61,7 +61,8 @@ uv run agentbench run --config examples/context-small.json --queue
 
 ## 演示与回归
 
-`uv run agentbench demo` 运行两组预设脚本：基线有 7 个预设失败任务，恢复脚本通过全部 23 条。
+`uv run agentbench demo` 运行两组预设脚本：基线有 7 个预设失败任务，恢复脚本通过全部 23 条规则检查。
+要求语义评测的任务仍显示待语义评分，不自动标成整体通过。
 这是评分器与执行链路的验收数据，**不是真实模型提升实验**。
 
 ```powershell
@@ -70,7 +71,9 @@ uv run agentbench compare BASE_RUN_ID CANDIDATE_RUN_ID
 uv run agentbench compare BASE_RUN_ID CANDIDATE_RUN_ID --gate
 ```
 
+默认门禁使用规则结果；`--metric overall --cohort JUDGE_COHORT` 使用整体结论，并拒绝缺少必要语义评分的比较。
 门禁拒绝不完整/不可比实验、任何通过→失败的任务，以及超过 `--max-drop` 的总体退化。
+干预实验必须显式 `--diagnostic`，不能作为门禁。
 运行结果在 `data/`，Inspect 日志在 `data/inspect_logs/`；均不提交 Git。
 
 ## 导入自己的任务集
@@ -103,14 +106,15 @@ uv build
 ```
 
 GitHub Actions 在 Windows / Ubuntu 执行测试、静态检查和 Inspect 回归演示。
-HTTP 模型与 Judge 接口通过模拟响应测试；首次发布未运行收费真实模型评测。
+HTTP 模型与 Judge 接口通过模拟响应测试；另有可选 OpenJudge 库集成检查。尚未运行收费真实模型评测。
 
 ## 设计资料与边界
 
+- [v0.2 可靠性优化与实验指南](docs/reliability-v2.md)：实现、验证、可选 OpenJudge、诊断和指标边界。
 - [技术设计与评测契约](docs/design.md)：隔离、统计口径、失败处理、恢复和评分边界。
 - [面经问题映射、演示脚本与简历改写](docs/interview-map.md)：可核验的牛客来源、开源参考与项目讲述。
 - [原项目来源](UPSTREAM.md)：导入的源码版本及归属。
 
-v0.1 聚焦 Markdown/CSV 虚拟环境。引用路径覆盖不等于语义正确，搜索不是向量检索，
+v0.2 聚焦 Markdown/CSV 虚拟环境。引用路径覆盖不等于语义正确，搜索不是向量检索，
 上下文预算按字符计量。人工与 Judge 评分独立保存，不覆盖硬约束结果。
 暂未包含 DOCX/PDF 版式、多模态、nanobot 适配器或生产级多租户部署。

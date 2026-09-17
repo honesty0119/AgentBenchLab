@@ -13,12 +13,13 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from agentbench.analysis import calibration, compare, summary
+from agentbench.analysis import calibration, compare, summary, combined_verdict
 from agentbench.dataset import import_dataset, list_datasets, select_cases
 from agentbench.judge import judge_trial
 from agentbench.runner import create_run
 from agentbench.schema import DatasetUpload, JudgeRequest, Review, RunConfig
 from agentbench.storage import Store, encode
+from agentbench.experiments import regrade_run, variants
 
 STATIC = Path(__file__).parent / "static"
 
@@ -47,7 +48,7 @@ def create_app(root=None, start_worker=True):
             if output:
                 output.close()
 
-    app = FastAPI(title="AgentBench Lab", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="AgentBench Lab", version="0.2.0", lifespan=lifespan)
     app.state.store = store
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
 
@@ -113,6 +114,9 @@ def create_app(root=None, start_worker=True):
         result = store.get_run(id)
         result["summary"] = summary(store, id)
         result["trials"] = [{k: v for k, v in t.items() if k != "result"} for t in store.trials(id)]
+        cases = {c["id"]: c for c in result["manifest"]["cases"]}
+        for t in result["trials"]:
+            t["verdict"] = combined_verdict(store.get_trial(t["id"]), cases[t["case_id"]])
         return result
 
     @app.post("/api/runs/{id}/cancel")
@@ -134,14 +138,23 @@ def create_app(root=None, start_worker=True):
                         headers={"Content-Disposition": f'attachment; filename="agentbench-{run["id"]}.json"'})
 
     @app.get("/api/compare")
-    def comparison(base: str, candidate: str):
-        return compare(store, base, candidate)
+    def comparison(base: str, candidate: str, diagnostic: bool = False, metric: str = "rules", cohort: str | None = None):
+        return compare(store, base, candidate, diagnostic=diagnostic, metric=metric, cohort=cohort)
+
+    @app.post("/api/runs/{id}/regrade")
+    def regrade(id: str):
+        return regrade_run(store, id)
+
+    @app.post("/api/variants/{mode}")
+    def generate_variants(mode: str, config: RunConfig):
+        return variants(store, config, mode)
 
     @app.get("/api/trials/{id}")
-    def trial(id: str):
+    def trial(id: str, cohort: str | None = None):
         t = store.get_trial(id)
         run = store.get_run(t["run_id"])
         t["case"] = next(c for c in run["manifest"]["cases"] if c["id"] == t["case_id"])
+        t["verdict"] = combined_verdict(t, t["case"], cohort)
         return t
 
     @app.get("/api/trials/{id}/blind")
@@ -162,12 +175,12 @@ def create_app(root=None, start_worker=True):
 
     @app.post("/api/trials/{id}/judge")
     async def judge(id: str, request: JudgeRequest):
-        return await judge_trial(store, id, request.rubric)
+        return await judge_trial(store, id, request.rubric, request.backend)
 
     @app.get("/api/runs/{id}/calibration")
-    def calibrate(id: str, rubric: str = "v2"):
+    def calibrate(id: str, rubric: str = "v2", cohort: str | None = None):
         store.get_run(id)
-        return calibration(store, id, rubric)
+        return calibration(store, id, rubric, cohort)
 
     @app.get("/")
     def index():

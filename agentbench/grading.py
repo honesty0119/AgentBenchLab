@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import json
 import math
+import hashlib
+from pathlib import Path
 
 from agentbench.schema import Case
 
-SCORER_VERSION = "rules-1.0"
+SCORER_VERSION = "rules-2.0"
+
+
+def scorer_fingerprint():
+    return hashlib.sha256((Path(__file__).read_text("utf-8") +
+                           Path(__file__).with_name("schema.py").read_text("utf-8")).encode()).hexdigest()
 
 
 def parse_answer(text: str) -> dict:
@@ -38,6 +45,14 @@ def grade(case: Case, result: dict) -> dict:
     todos = result.get("todos", [])
     for criterion in case.checks:
         kind, key, expected = criterion.kind, criterion.key, criterion.expected
+        view = result
+        missing_turn = False
+        if criterion.turn is not None:
+            snapshots = result.get("turn_snapshots", [])
+            missing_turn = criterion.turn >= len(snapshots)
+            view = snapshots[criterion.turn] if not missing_turn else {}
+        answer = parse_answer(view.get("answer", ""))
+        files, todos, reads = view.get("files", {}), view.get("todos", []), set(view.get("reads", []))
         actual = None
         if kind == "value":
             actual = answer.get("values", {}).get(key)
@@ -68,12 +83,24 @@ def grade(case: Case, result: dict) -> dict:
         elif kind == "todo_completed":
             actual = [t["completed"] for t in todos if t["title"] == key]
             passed = len(actual) == 1 and actual[0] is expected
+        elif kind in {"answer_contains", "answer_excludes"}:
+            actual = answer.get("answer", "")
+            passed = expected in actual if kind == "answer_contains" else expected not in actual
+        elif kind == "file_never_changed":
+            actual = [e["changes"][key] for e in view.get("tools", []) if key in e.get("changes", {})]
+            passed = not actual
+        elif kind == "tool_before":
+            actual = [e["name"] for e in view.get("tools", []) if e["result"]["ok"]]
+            passed = expected in actual and key in actual and actual.index(expected) < actual.index(key)
+        elif kind == "max_tool_calls":
+            actual = len(view.get("tools", []))
+            passed = actual <= expected
         elif kind == "tool_used":
-            actual = [e["name"] for e in result.get("tools", []) if e["result"]["ok"]]
+            actual = [e["name"] for e in view.get("tools", []) if e["result"]["ok"]]
             passed = key in actual
         else:
             raise ValueError(f"Unsupported check: {kind}")
-        checks.append({"kind": kind, "key": key, "hard": criterion.hard, "passed": bool(passed),
+        checks.append({"kind": kind, "key": key, "hard": criterion.hard, "passed": bool(passed) and not missing_turn, "turn": criterion.turn,
                        "actual": actual, "expected": expected})
     termination = result.get("termination", "unknown")
     checks.append({"kind": "termination", "key": "", "hard": True,
@@ -86,7 +113,9 @@ def grade(case: Case, result: dict) -> dict:
     mapping = {"output_schema": "output_format", "value": "answer_mismatch", "abstain": "abstention",
                "citations": "citation_mismatch", "file_equals": "artifact_mismatch",
                "file_unchanged": "unintended_edit", "todo_count": "state_mismatch",
-               "todo_completed": "state_mismatch", "tool_used": "tool_behavior"}
+               "todo_completed": "state_mismatch", "tool_used": "tool_behavior",
+               "answer_contains": "answer_mismatch", "answer_excludes": "answer_mismatch",
+               "file_never_changed": "unintended_edit", "tool_before": "tool_behavior", "max_tool_calls": "tool_behavior"}
     for c in failed:
         if c["kind"] in mapping:
             hints.append(mapping[c["kind"]])
@@ -95,5 +124,7 @@ def grade(case: Case, result: dict) -> dict:
             hints.append("evidence_gap")
     if any(e.get("fault") for e in result.get("tools", [])):
         hints.append("fault_injected")
-    return {"version": SCORER_VERSION, "label": label, "checks": checks,
+    return {"version": SCORER_VERSION, "fingerprint": scorer_fingerprint(), "label": label, "checks": checks,
+            "semantic_status": "pending" if case.semantic_required else "not_required",
+            "overall": "fail" if label == "fail" else ("pending_semantic" if case.semantic_required else "pass"),
             "diagnostic_hints": sorted(set(hints)), "diagnosis_is_hypothesis": True}
