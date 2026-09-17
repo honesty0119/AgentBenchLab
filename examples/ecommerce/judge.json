@@ -1,0 +1,7 @@
+{
+  "model": "REPLACE_WITH_YOUR_JUDGE_MODEL",
+  "max_requests": 20,
+  "max_output_tokens": 1500,
+  "request_chars": 200000,
+  "timeout_seconds": 60
+}
