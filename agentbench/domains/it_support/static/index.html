@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IT 工单评测 · 合成环境</title>
+<style>
+body{margin:0;background:#f1f5f9;color:#172d40;font:16px/1.6 system-ui,sans-serif}main{max-width:1120px;margin:40px auto;padding:0 24px}h1{font-size:30px;margin-bottom:8px}h2{font-size:21px}small{color:#506478}.banner{background:#fff4d6;border-left:4px solid #cb921a;padding:14px 20px}section{background:white;padding:22px;margin-top:22px;border-radius:12px}select{padding:10px;max-width:100%;font-size:16px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f8;padding:16px;border-radius:8px;font-size:13px}.stats{display:flex;gap:22px;flex-wrap:wrap}.stat{flex:1;min-width:130px}.num{font-size:32px;color:#13716e}table{width:100%;border-collapse:collapse}td,th{text-align:left;border-bottom:1px solid #dce4ec;padding:10px}summary{cursor:pointer;font-weight:600}.pass{color:#087a64}.fail{color:#b62640}
+</style><main>
+<small>AGENTBENCH LAB / IT SUPPORT</small><h1>工单完成，必须有恢复证据</h1>
+<p class="banner" id="notice">本地仿真 · 合成草稿 · 规则检查与语义质量分别报告。</p>
+<section><div class="stats" id="stats"></div></section>
+<section><h2>任务与逐轮结果</h2><select id="cases" aria-label="选择任务"></select><div id="detail"></div></section>
+<section><h2>完整工具轨迹</h2><p>查看诊断分支、模拟修复、恢复探针和工单状态；工具超时与响应丢失单独标记。</p><div id="trace"></div></section>
+<p><small>仿真工具不访问真实网络、账号或设备。语义解释质量仍待 Judge 与独立人工校准。</small></p>
+</main><script>
+const el=id=>document.getElementById(id);
+const node=(tag,text)=>{const n=document.createElement(tag);n.textContent=text;return n};
+fetch('/api/report').then(r=>r.json()).then(report=>{
+ const s=report.summary;
+ el('notice').textContent=`本地仿真 · ${s.cases} 条合成草稿 · `+(report.records.every(r=>r.result.demo)?'确定性脚本仅验证执行与判分，不代表真实模型能力。':'当前报告来自显式模型运行。')+' 尚未独立人审。';
+ for(const [label,value] of [['任务',s.cases],['规则通过',s.rules_pass],['待语义评分',s.pending_semantic],['触发故障',s.faults_triggered]]){
+  const box=node('div','');box.className='stat';const n=node('div',value);n.className='num';box.append(n,node('div',label));el('stats').append(box);
+ }
+ report.records.forEach((r,i)=>{const o=node('option',`${r.case.title} · ${r.case.split} · ${r.grade.rules}`);o.value=i;el('cases').append(o)});
+ function render(){const r=report.records[Number(el('cases').value)];el('detail').replaceChildren();el('trace').replaceChildren();
+  el('detail').append(node('p',`${r.case.coverage} | 家族 ${r.case.family} | draft | 整体 ${r.grade.overall}`));
+  r.result.turn_snapshots.forEach((s,i)=>{el('detail').append(node('h2',`第 ${i+1} 轮`),node('p',r.case.turns[i].message));
+   let answer;try{answer=JSON.parse(s.answer)}catch{answer={answer:s.answer}}
+   el('detail').append(node('p',answer.answer));
+   const tickets=Object.values(s.state.tickets).filter(t=>t.request===r.case.id);
+   const labels={resolved:'已验证恢复',escalated:'未解决，已转交',waiting_for_user:'等待用户补充',diagnosing:'诊断中'};
+   for(const t of tickets){const probe=s.state.probes[t.evidence_id];el('detail').append(node('p',`工单 ${t.id} ｜ ${labels[t.status]||t.status} ｜ 验证记录：${t.evidence_id||'暂无'}${probe?(probe.ok?'（恢复）':'（未恢复）'):''}`));
+    if(t.handoff?.reason)el('detail').append(node('p',`转交原因：${t.handoff.reason} 下一步：${t.handoff.next_step}`));
+   }
+   if(answer.questions?.length)el('detail').append(node('p',`需要补充：${answer.questions.join('、')}`));
+   const raw=node('details','');raw.append(node('summary','查看评分状态与原始答复'),node('pre',JSON.stringify({answer,tickets,service:s.state.service},null,2)));el('detail').append(raw);
+  });
+  if(r.grade.failures.length)el('detail').append(node('pre',JSON.stringify(r.grade.failures,null,2)));
+  r.result.tools.forEach((e,i)=>{const d=node('details','');const outcome=e.name==='probe'&&e.result.ok?(e.result.data?.ok?'已恢复':'未恢复'):(e.result.ok?'调用成功':'调用错误');d.append(node('summary',`${i+1}. ${e.name} · 轮 ${e.turn+1} · ${outcome}${e.fault?' · 注入 '+e.fault:''}`),node('pre',JSON.stringify({arguments:e.arguments,result:e.result,duration_ms:e.duration_ms,harness_retry:e.harness_retry},null,2)));el('trace').append(d)});
+ }
+ el('cases').addEventListener('change',render);render();
+}).catch(()=>el('detail').append(node('p','读取报告失败，请先运行离线演示。')));
+</script></html>

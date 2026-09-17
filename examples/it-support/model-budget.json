@@ -1,0 +1,14 @@
+{
+  "name": "IT单题预算限制实验（未运行）",
+  "agent": "openai-compatible",
+  "model": "REPLACE_WITH_CONFIGURED_MODEL",
+  "max_steps": 24,
+  "context_chars": 32000,
+  "request_chars": 160000,
+  "timeout_seconds": 120,
+  "max_output_tokens": 1024,
+  "tool_timeout_seconds": 0.05,
+  "tool_retry_policy": "safe",
+  "tool_retries": 1,
+  "http_retries": 0
+}
